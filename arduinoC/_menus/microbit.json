@@ -58,10 +58,6 @@
                 "Sengo2::kVisionQrCode"
             ],
             [
-                "Custom",
-                "Sengo2::kVisionCustom"
-            ],
-            [
                 "Motion",
                 "Sengo2::kVisionMotionDetect"
             ]

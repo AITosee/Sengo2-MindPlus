@@ -1,5 +1,4 @@
-__version__ = "Sentry2 v1.2.1m"
-__author__ = "weiyanfengv@gmail.com"
+__version__ = "Sengo2 v1.0.0"
 __license__ = "http://unlicense.org"
 
 import ustruct  # pylint: disable=import-error
@@ -7,20 +6,51 @@ from time import sleep_ms  # pylint: disable=no-name-in-module
 
 SENTRY_FIRMWARE_VERSION = 0xFF
 
-SENTRY_MAX_RESULT = 9
+SENTRY_MAX_RESULT = 25
 
 SENTRY_OK = 0x00
 SENTRY_FAIL = 0x01
+SENTRY_WRITE_TIMEOUT = 0x02
 SENTRY_READ_TIMEOUT = 0x03
 SENTRY_CHECK_ERROR = 0x04
 SENTRY_UNSUPPORT_PARAM = 0x10
 SENTRY_UNKNOWN_PROTOCOL = 0x11
 
+# Protocol Error Type
+SENTRY_PROTOC_OK = 0xE0
+SENTRY_PROTOC_FAIL = 0xE1
+SENTRY_PROTOC_UNKNOWN = 0xE2
+SENTRY_PROTOC_TIMEOUT = 0xE3
+SENTRY_PROTOC_CHECK_ERROR = 0xE4
+SENTRY_PROTOC_LENGTH_ERROR = 0xE5
+SENTRY_PROTOC_UNSUPPORT_COMMAND = 0xE6
+SENTRY_PROTOC_UNSUPPORT_REG_ADDRESS = 0xE7
+SENTRY_PROTOC_UNSUPPORT_REG_VALUE = 0xE8
+SENTRY_PROTOC_READ_ONLY = 0xE9
+SENTRY_PROTOC_RESTART_ERROR = 0xEA
+SENTRY_PROTOC_RESULT_NOT_END = 0xEC
+
+# Protocol
+SENTRY_PROTOC_START = 0xFF
+SENTRY_PROTOC_END = 0xED
+SENTRY_PROTOC_COMMADN_SET = 0x01
+SENTRY_PROTOC_COMMADN_GET = 0x02
+SENTRY_PROTOC_SET_PARAM = 0x21
+SENTRY_PROTOC_GET_RESULT = 0x23
+SENTRY_PROTOC_MESSAGE = 0x11
+
 # sentry_reg
 kRegDeviceId = 0x01
+kRegFirmwareVersion = 0x02
 kRegRestart = 0x03
 kRegSensorConfig1 = 0x04
 kRegLock = 0x05
+kRegLed = 0x06
+kRegLedLevel = 0x08
+kRegUart = 0x09
+kRegUSBCongig = 0x0B
+kRegLcdCongig = 0x0C
+kRegHWConfig = 0x0F
 kRegCameraConfig1 = 0x10
 kRegCameraConfig2 = 0x11
 kRegCameraConfig3 = 0x12
@@ -78,13 +108,22 @@ class sentry_obj_info_e:
     kGValue = 8
     kBValue = 9
 
-# sentry_camera_white_balance
-class sentry_camera_white_balance_e:
-    kAutoWhiteBalance = 0
-    kLockWhiteBalance = 1
-    kWhiteLight = 2
-    kYellowLight = 3
-    kWhiteBalanceCalibrating = 4
+# sentry_mode
+class sentry_mode_e:
+    kSerialMode = 0x00
+    kI2CMode = 0x01
+    kUnknownMode = 0x02
+
+# sentry_led_color
+class sentry_led_color_e:
+    kLedClose = 0
+    kLedRed = 1
+    kLedGreen = 2
+    kLedYellow = 3
+    kLedBlue = 4
+    kLedPurple = 5
+    kLedCyan = 6
+    kLedWhite = 7
 
 # Sentry color label
 class color_label_e:
@@ -95,8 +134,14 @@ class color_label_e:
     kColorBlue = 5
     kColorYellow = 6
 
-# Sentry2 vision
-class sentry2_vision_e:
+class apriltag_vision_mode_e:
+    kVisionModeFamily16H5 = 0
+    kVisionModeFamily25H9 = 1
+    kVisionModeFamily36H11 = 2
+
+
+# sengo2 vision
+class sengo2_vision_e:
     kVisionColor = 1
     kVisionBlob = 2
     kVisionAprilTag = 3
@@ -106,13 +151,11 @@ class sentry2_vision_e:
     kVisionFace = 7
     kVision20Classes = 8
     kVisionQrCode = 9
-    kVisionObjTrack = 10
     kVisionMotionDetect = 11
-    kVisionCustom= 12
-    kVisionMaxType = 13
+    kVisionMaxType = 12
 
 # Sentry card label
-class sentry2_card_label_e:
+class sengo2_card_label_e:
     kCardForward = 1
     kCardLeft = 2
     kCardRight = 3
@@ -314,7 +357,7 @@ class SentryI2CMethod:
 
         vision_state.detect = SENTRY_MAX_RESULT if SENTRY_MAX_RESULT < vision_state.detect else vision_state.detect
 
-        if sentry2_vision_e.kVisionQrCode == vision_type:
+        if sengo2_vision_e.kVisionQrCode == vision_type:
             vision_state.detect = 1
 
         for i in range(vision_state.detect):
@@ -343,7 +386,7 @@ class SentryI2CMethod:
             if err:
                 return (err, vision_state)
 
-            if sentry2_vision_e.kVisionQrCode == vision_type:
+            if sengo2_vision_e.kVisionQrCode == vision_type:
                 vision_state.result[i].bytestr = ""
                 for j in range(vision_state.result[i].data5):
                     result_id = int(j / 5 + 2)
@@ -382,6 +425,280 @@ class SentryI2CMethod:
 
         return SENTRY_OK
 
+
+class SentryUartMethod:
+    """
+
+    """
+
+    def __init__(self, address, communication_port, logger=None):
+        self.__mu_address = address
+        self.__communication_port = communication_port
+        self.__logger = logger
+        # Setting serial port parameters
+        self.__communication_port.init(timeout=1000, timeout_char=10)
+
+    def Logger(self, *arg):  # level, format, args
+        if self.__logger:
+            self.__logger(self.__class__.__name__, *arg)
+
+    def __cheak(self, data):
+        count = 0
+        for i in data[:-2]:
+            count += i
+        count &= 0xff
+
+        if count == data[-2]:
+            return SENTRY_PROTOC_OK
+        else:
+            return SENTRY_PROTOC_CHECK_ERROR
+
+    def __protocol_read(self):
+
+        count_ms = 0
+        # The shortest receiving time of serial protocol is 6 bytes
+        while self.__communication_port.any() < 6:
+            count_ms += 1
+            # The maximum waiting time for receiving data is 1s
+            if count_ms < 1000:
+                sleep_ms(1)
+            else:
+                self.Logger(LOG_ERROR, "Waiting for reception timeOut!!!")
+                return (SENTRY_PROTOC_TIMEOUT, [])
+
+        self.Logger(LOG_DEBUG, "Waiting for reception takes %dms", count_ms)
+
+        data_len = 0
+        data_list = []
+        for _ in range(self.__communication_port.any()):
+            data_list.append(self.__communication_port.read(1)[0])
+            if data_list[0] == SENTRY_PROTOC_START:
+                data_list.append(self.__communication_port.read(1)[0])
+                data_len = data_list[1]
+                data_list += list(self.__communication_port.read(data_len-2))
+                break
+
+        if self.__logger:
+            self.Logger(LOG_DEBUG, "    rev-> %s",
+                        ' '.join(['%02x' % b for b in data_list]))
+
+        if data_len > 0 and data_len != len(data_list):
+            return (SENTRY_PROTOC_CHECK_ERROR, [])
+
+        if SENTRY_PROTOC_END != data_list[-1]:
+            return (SENTRY_PROTOC_CHECK_ERROR, [])
+
+        if self.__cheak(data_list) != SENTRY_PROTOC_OK:
+            return (SENTRY_PROTOC_CHECK_ERROR, [])
+
+        return (SENTRY_PROTOC_OK, tuple(data_list[3:]))
+
+    def Set(self, reg_address, value):
+
+        data_list = [SENTRY_PROTOC_START, 0, self.__mu_address,
+                     SENTRY_PROTOC_COMMADN_SET, reg_address, value]
+        data_list[1] = len(data_list)+2
+        cheak_num = 0
+        for da in data_list:
+            cheak_num += da
+
+        data_list.append(cheak_num & 0xff)
+        data_list.append(SENTRY_PROTOC_END)
+
+        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+
+        if self.__logger:
+            self.Logger(LOG_DEBUG, "Set req-> %s",
+                        ' '.join(['%02x' % b for b in data]))
+
+        if self.__communication_port.any():
+            # Clear cache before sending
+            self.__communication_port.read()
+        self.__communication_port.write(data)
+
+        try_time = 0
+        while True:
+            err, data = self.__protocol_read()
+            if err == SENTRY_PROTOC_OK:
+                if data[0] == SENTRY_PROTOC_OK or \
+                        data[1] == SENTRY_PROTOC_COMMADN_GET or \
+                        data[2] == reg_address:
+                    return SENTRY_OK
+                else:
+                    return data[0]
+
+            elif err == SENTRY_PROTOC_TIMEOUT:
+                try_time += 1
+                if try_time > 3:
+                    return SENTRY_READ_TIMEOUT
+            else:
+                return SENTRY_FAIL
+
+    def Get(self, reg_address):
+
+        data_list = [SENTRY_PROTOC_START, 0, self.__mu_address,
+                     SENTRY_PROTOC_COMMADN_GET, reg_address]
+        data_list[1] = len(data_list)+2
+        cheak_num = 0
+        for da in data_list:
+            cheak_num += da
+
+        data_list.append(cheak_num & 0xff)
+        data_list.append(SENTRY_PROTOC_END)
+
+        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+
+        if self.__logger:
+            self.Logger(LOG_DEBUG, "Get req-> %s",
+                        ' '.join(['%02x' % b for b in data]))
+
+        if self.__communication_port.any():
+            # Clear cache before sending
+            self.__communication_port.read()
+        self.__communication_port.write(data)
+
+        try_time = 0
+        while True:
+            err, data = self.__protocol_read()
+            if err == SENTRY_PROTOC_OK:
+                if data[0] == SENTRY_PROTOC_OK or \
+                        data[1] == SENTRY_PROTOC_COMMADN_GET:
+                    return (SENTRY_OK, data[2])
+                else:
+                    return (data[0], 0)
+
+            elif err == SENTRY_PROTOC_TIMEOUT:
+                try_time += 1
+                if try_time > 3:
+                    return SENTRY_READ_TIMEOUT
+            else:
+                return SENTRY_FAIL
+
+    def Read(self, vision_type, vision_state):
+
+        data_list = [SENTRY_PROTOC_START, 0, self.__mu_address,
+                     SENTRY_PROTOC_GET_RESULT, vision_type, 0, 0]
+        data_list[1] = len(data_list)+2
+        cheak_num = 0
+        for da in data_list:
+            cheak_num += da
+
+        data_list.append(cheak_num & 0xff)
+        data_list.append(SENTRY_PROTOC_END)
+
+        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+
+        if self.__logger:
+            self.Logger(LOG_DEBUG, "Read req-> %s",
+                        ' '.join(['%02x' % b for b in data]))
+
+        if self.__communication_port.any():
+            # Clear cache before sending
+            self.__communication_port.read()
+        self.__communication_port.write(data)
+
+        try_time = 0
+        vision_state.detect = 0
+
+        while True:
+            err, data = self.__protocol_read()
+            #print("read",hex(err), hex(data[0]))
+            if err == SENTRY_PROTOC_OK:
+                if data[0] == SENTRY_PROTOC_OK or data[0] == SENTRY_PROTOC_RESULT_NOT_END:
+                    if data[1] == SENTRY_PROTOC_GET_RESULT and data[3] == vision_type:
+                        vision_state.frame = data[2]
+                        start_id = data[4]
+                        stop_id = data[5]
+
+                        if SENTRY_MAX_RESULT < stop_id:
+                            return (SENTRY_UNSUPPORT_PARAM, vision_state)
+
+                        if not start_id:
+                            return (SENTRY_OK, vision_state)
+
+                        if sengo2_vision_e.kVisionQrCode == vision_type:
+                            vision_state.detect = 1
+                        else:
+                            vision_state.detect = stop_id-start_id+1
+
+                        for i in range(vision_state.detect):
+                            v_id = i+start_id-1
+                            vision_state.result[v_id].data1 = data[10 *
+                                                                   i + 6] << 8 | data[10 * i + 7]
+                            vision_state.result[v_id].data2 = data[10 *
+                                                                   i + 8] << 8 | data[10 * i + 9]
+                            vision_state.result[v_id].data3 = data[10 *
+                                                                   i + 10] << 8 | data[10 * i + 11]
+                            vision_state.result[v_id].data4 = data[10 *
+                                                                   i + 12] << 8 | data[10 * i + 13]
+                            vision_state.result[v_id].data5 = data[10 *
+                                                                   i + 14] << 8 | data[10 * i + 15]
+                            if sengo2_vision_e.kVisionQrCode == vision_type:                       
+                                vision_state.result[v_id].bytestr = ""
+                                for j in range(vision_state.result[v_id].data5):
+                                    vision_state.result[v_id].bytestr += chr(data[17 + 2 * j])
+
+                        if data[0] == SENTRY_PROTOC_RESULT_NOT_END:
+                            continue
+                        else:
+                            return (SENTRY_OK, vision_state)
+                    else:
+                        return (SENTRY_UNSUPPORT_PARAM, vision_state)
+            elif err == SENTRY_PROTOC_TIMEOUT:
+                try_time += 1
+                if try_time > 3:
+                    return (SENTRY_READ_TIMEOUT, vision_state)
+            else:
+                 return (SENTRY_FAIL, vision_state)
+
+    def SetParam(self, vision_id, param: list, param_id):
+        data_list = [SENTRY_PROTOC_START, 0, self.__mu_address,
+                     SENTRY_PROTOC_SET_PARAM, vision_id, param_id, param_id]
+
+        data_list += param
+        data_list[1] = len(data_list)+2
+        cheak_num = 0
+        for da in data_list:
+            cheak_num += da
+
+        data_list.append(cheak_num & 0xff)
+        data_list.append(SENTRY_PROTOC_END)
+
+        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+
+        if self.__logger:
+            self.Logger(LOG_DEBUG, "Set req-> %s",
+                        ' '.join(['%02x' % b for b in data]))
+
+        if self.__communication_port.any():
+            # Clear cache before sending
+            self.__communication_port.read()
+        self.__communication_port.write(data)
+
+        try_time = 0
+
+        while True:
+            err, data = self.__protocol_read()
+
+            if err == SENTRY_PROTOC_OK:
+                if data[0] == SENTRY_PROTOC_OK:
+                    if data[1] == SENTRY_PROTOC_SET_PARAM:
+                        # FIXME: which is right?
+                        # if (ret_val.buf[2] == vision_type:
+                        return SENTRY_OK
+                    # else:
+                    #    return SENTRY_FAIL
+                    else:
+                        return SENTRY_UNSUPPORT_PARAM
+                else:
+                    return SENTRY_READ_TIMEOUT
+            elif err == SENTRY_PROTOC_TIMEOUT:
+                try_time += 1
+                if try_time > 3:
+                    return SENTRY_READ_TIMEOUT
+            else:
+                 return SENTRY_FAIL
+
 class SentryBase:
     """
 
@@ -394,7 +711,7 @@ class SentryBase:
         self.__img_w = 0
         self.__img_h = 0
         self.__debug = None
-        self.__vision_states = [None]*SENTRY_MAX_RESULT
+        self.__vision_states = [None]*sengo2_vision_e.kVisionMaxType
 
         self.SetDebug(log_level)
 
@@ -497,6 +814,12 @@ class SentryBase:
             self.__stream = SentryI2CMethod(
                 self.__address, communication_port, logger=self.__logger)
             self.Logger(LOG_INFO, "Begin I2C mode succeed!")
+
+        elif 'UART' == communication_port.__class__.__name__:
+            self.__stream = SentryUartMethod(
+                self.__address, communication_port, logger=self.__logger)
+            self.Logger(LOG_INFO, "Begin UART mode succeed!")
+
         elif communication_port == None:
             from machine import I2C, Pin  # pylint: disable=import-error
             communication_port = I2C(
@@ -553,8 +876,26 @@ class SentryBase:
 
         return self.__stream.SetParam(vision_type, params, param_id)
 
+    def VisionSetMode(self, vision_type, mode):
+
+        err = self.__stream.Set(kRegVisionId, vision_type);
+        if err:
+            return err
+        err, vision_config_reg_value = self.__stream.Get(kRegVisionConfig2)
+        if err:
+            return err
+        
+        _mode = vision_config_reg_value&0x0f
+        if _mode != mode:
+            vision_config_reg_value &= 0xf0
+            vision_config_reg_value |= mode
+            
+            err = self.__stream.Set(kRegVisionConfig2, vision_config_reg_value)
+        return err;
+
+
     def GetVisionState(self, vision_type):
-        if vision_type >= sentry2_vision_e.kVisionMaxType:
+        if vision_type >= sengo2_vision_e.kVisionMaxType:
             return 0
 
         return self.__vision_states[vision_type-1]
@@ -631,7 +972,7 @@ class SentryBase:
 
     def UpdateResult(self, vision_type):
 
-        if vision_type >= sentry2_vision_e.kVisionMaxType:
+        if vision_type >= sengo2_vision_e.kVisionMaxType:
             return 0
 
         vision_state = self.__vision_states[vision_type-1]
@@ -661,7 +1002,7 @@ class SentryBase:
 
     def __read(self, vision_type, object_inf, obj_id):
 
-        if vision_type >= sentry2_vision_e.kVisionMaxType:
+        if vision_type >= sengo2_vision_e.kVisionMaxType:
             return 0
 
         vision_state = self.__vision_states[vision_type-1]
@@ -695,7 +1036,7 @@ class SentryBase:
             return 0
 
     def GetQrCodeValue(self):
-        vision_state = self.__vision_states[sentry2_vision_e.kVisionQrCode-1]
+        vision_state = self.__vision_states[sengo2_vision_e.kVisionQrCode-1]
         if vision_state == None:
             return ""
 
@@ -729,40 +1070,50 @@ class SentryBase:
 
         return err
 
-    def CameraSetAwb(self, awb):
+    def LedSetColor(self, detected_color, undetected_color, level):
 
-        err, camera_reg_value = self.__stream.Get(
-            kRegCameraConfig1)
+        err, led_level = self.__stream.Get(kRegLedLevel)
         if err:
             return err
 
-        white_balance = (camera_reg_value >> 5) & 0x03
+        led_level &= 0xF0
+        led_level |= (level & 0x0F)
+        self.__stream.Set(kRegLedLevel, led_level)
 
-        if sentry_camera_white_balance_e.kLockWhiteBalance == awb:
-            camera_reg_value &= 0x1f
-            camera_reg_value |= (awb & 0x03) << 5
-            err = self.__stream.Set(
-                kRegCameraConfig1, camera_reg_value)
-            if err:
-                return err
-            while (camera_reg_value >> 7) == 0:
-                err, camera_reg_value = self.__stream.Get(
-                    kRegCameraConfig1)
-                if err:
-                    return err
+        err, led_reg_value = self.__stream.Get(kRegLed)
+        if err:
+            return err
 
-        elif white_balance != awb:
-            camera_reg_value &= 0x1f
-            camera_reg_value |= (awb & 0x03) << 5
-            err = self.__stream.Set(
-                kRegCameraConfig1, camera_reg_value)
-            if err:
-                return err
+        led_reg_value &= 0x10
 
-        return err
+        if detected_color == undetected_color:
+            led_reg_value |= 0x01      
 
+        led_reg_value |= (detected_color & 0x07) << 1
+        led_reg_value |= (undetected_color & 0x07) << 5
 
-class Sentry2(SentryBase):
-    SENTRY2_DEVICE_ID = 0x04
+        err = self.__stream.Set(kRegLed, led_reg_value)
+        if err:
+            return err
+
+        return SENTRY_OK
+
+    def LcdSetMode(self, on):
+
+        err, lcd_reg_value = self.__stream.Get(kRegLcdCongig)
+        if err:
+            return err
+
+        lcd_reg_value &= 0xFe
+        lcd_reg_value |= (on & 0x01)
+
+        err = self.__stream.Set(kRegLcdCongig, lcd_reg_value)
+        if err:
+            return err
+
+        return SENTRY_OK
+
+class Sengo2(SentryBase):
+    SENGO2_DEVICE_ID = 0x07
     def __init__(self, address=0x60, log_level=LOG_ERROR):
-        super().__init__(self.SENTRY2_DEVICE_ID,address,log_level)
+        super().__init__(self.SENGO2_DEVICE_ID,address,log_level)
