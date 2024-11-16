@@ -1,0 +1,47 @@
+{
+  "name": {
+    "zh-cn": "Sengo2视觉传感器",
+    "en": "Sengo2 Vision Sensor"
+  },
+  "description": {
+    "zh-cn": "Sengo2视觉传感器 库文件。",
+    "en": "Sengo2 Vision Sensor libraries."
+  },
+  "author": "AITosee",
+  "email": "support@aitosee.com",
+  "license": "MIT",
+  "isTest": true,
+  "isBoard": false,
+  "id": "Sengo2",
+  "platform": [
+    "win",
+    "web"
+  ],
+  "version": "0.0.1",
+  "asset": {
+    "arduinoC": {
+      "dir": "arduinoC/",
+      "version": "v1.3.7",
+      "board": [
+        "arduino",
+        "arduinonano",
+        "mega2560",
+        "microbit",
+        "maqueen",
+        "esp32",
+        "firebeetleesp32",
+        "telloesp32",
+        "leonardo"
+      ],
+      "main": "main.ts"
+    },
+    "microPython": {
+      "dir": "microPython/",
+      "version": "v1.2.2",
+      "board": [
+        "esp32"
+      ],
+      "main": "main.ts"
+    }
+  }
+}
