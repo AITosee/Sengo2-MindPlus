@@ -162,11 +162,11 @@
     "VISION_STA": {
         "menu": [
             [
-                "Open",
+                "run",
                 "ON"
             ],
             [
-                "Close",
+                "stop",
                 "OFF"
             ]
         ]
@@ -419,7 +419,7 @@
             ],
             [
                 "DiningTable",
-                "Sengo2::kTable"
+                "Sengo2::kDiningTable"
             ],
             [
                 "Dog",
@@ -439,7 +439,7 @@
             ],
             [
                 "PottedPlant",
-                "Sengo2::kPlant"
+                "Sengo2::kPottedPlant"
             ],
             [
                 "Sheep",
@@ -455,7 +455,7 @@
             ],
             [
                 "TvMonitor",
-                "Sengo2::kMonitor"
+                "Sengo2::kTvMonitor"
             ]
         ]
     },
