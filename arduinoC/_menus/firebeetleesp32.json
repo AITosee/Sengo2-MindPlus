@@ -110,16 +110,16 @@
     "APRILTAG_MODE": {
         "menu": [
             [
+                "36H11",
+                "Sengo2::kVisionModeFamily36H11"
+            ],
+            [
                 "16H5",
                 "Sengo2::kVisionModeFamily16H5"
             ],
             [
                 "25H9",
                 "Sengo2::kVisionModeFamily25H9"
-            ],
-            [
-                "36H11",
-                "Sengo2::kVisionModeFamily36H11"
             ]
         ]
     },

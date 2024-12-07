@@ -138,16 +138,16 @@
     "APRILTAG_MODE": {
         "menu": [
             [
+                "36H11",
+                "apriltag_vision_mode_e.kVisionModeFamily36H11"
+            ],
+            [
                 "16H5",
                 "apriltag_vision_mode_e.kVisionModeFamily16H5"
             ],
             [
                 "25H9",
                 "apriltag_vision_mode_e.kVisionModeFamily25H9"
-            ],
-            [
-                "36H11",
-                "apriltag_vision_mode_e.kVisionModeFamily36H11"
             ]
         ]
     },
