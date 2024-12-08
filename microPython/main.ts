@@ -127,7 +127,7 @@ namespace Sengo2 {
     export function GetVisionResult(parameter: any) {
 
         let vision_type = parameter.VISION_TYPE.code;
-        Generator.addCode([`sengo2.GetValue(${vision_type}, sengo2_obj_info_e.kStatus)`, Generator.ORDER_UNARY_POSTFIX]);
+        Generator.addCode([`sengo2.GetValue(${vision_type}, sentry_obj_info_e.kStatus)`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
     //% block="  Sengo2  algo Color  [OBJ_INFO] of result [NUM]" blockType="reporter"
@@ -185,7 +185,7 @@ namespace Sengo2 {
 
         let num = parameter.NUM.code;
         let obj = parameter.COLOR_LABLE.code;
-        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionColor,sengo2_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
+        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionColor,sentry_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
     //% block=" Sengo2  algo Blob  detected [COLOR_LABLE] blob result [NUM]" blockType="boolean"
@@ -195,7 +195,7 @@ namespace Sengo2 {
 
         let num = parameter.NUM.code;
         let obj = parameter.COLOR_LABLE.code;
-        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionBlob,sengo2_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
+        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionBlob,sentry_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
     //% block=" Sengo2  algo Card  recognized [CARD_LABLE] result [NUM]" blockType="boolean"
@@ -205,7 +205,7 @@ namespace Sengo2 {
 
         let num = parameter.NUM.code;
         let obj = parameter.CARD_LABLE.code;
-        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionCard,sengo2_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
+        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionCard,sentry_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
     //% block=" Sengo2  algo 20Class  recognized [Class20_LABLE] result [NUM]" blockType="boolean"
@@ -215,6 +215,6 @@ namespace Sengo2 {
 
         let num = parameter.NUM.code;
         let obj = parameter.Class20_LABLE.code;
-        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVision20Classes,sengo2_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
+        Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVision20Classes,sentry_obj_info_e.kLabel,${num})==${obj}`, Generator.ORDER_UNARY_POSTFIX]);
     }
 }
