@@ -187,7 +187,7 @@ namespace Sengo2 {
     //% block="  Sengo2  algo QrCode  string of decoding result" blockType="reporter"
     export function GetQrCodeValueStr(parameter: any) {
 
-        Generator.addCode([`String(sengo2.GetQrCodeValueStr())`, Generator.ORDER_UNARY_POSTFIX]);
+        Generator.addCode([`String(sengo2.GetQrCodeValue())`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
     //% block=" Sengo2  algo Color  recognized [COLOR_LABLE] result [NUM]" blockType="boolean"

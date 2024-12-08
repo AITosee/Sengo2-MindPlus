@@ -120,7 +120,7 @@ namespace Sengo2 {
         let num = parameter.NUM.code;
         let l = parameter.COLOR_LABLE.code;
 
-        Generator.addCode(`sengo2.SetParam(${vision_type},[0, 0,0, 0, ${l}],(int)${num});`);
+        Generator.addCode(`sengo2.SetParam(${vision_type},[0, 0,0, 0, ${l}], ${num});`);
     }
     //% block="  Sengo2  algo[VISION_TYPE]  num of results" blockType="reporter" 
     //% VISION_TYPE.shadow="dropdown" VISION_TYPE.options="VISION_TYPE_ALL"   
@@ -175,7 +175,7 @@ namespace Sengo2 {
     //% block="  Sengo2  algo QrCode  string of decoding result" blockType="reporter"
     export function GetQrCodeValueStr(parameter: any) {
 
-        Generator.addCode([`sengo2.GetQrCodeValueStr()`, Generator.ORDER_UNARY_POSTFIX]);
+        Generator.addCode([`sengo2.GetQrCodeValue()`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
     //% block=" Sengo2  algo Color  recognized [COLOR_LABLE] result [NUM]" blockType="boolean"
