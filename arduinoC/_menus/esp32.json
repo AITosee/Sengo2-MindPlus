@@ -54,7 +54,7 @@
                 "Sengo2::kVisionFace"
             ],
             [
-                "20Classes",
+                "20Class",
                 "Sengo2::kVision20Classes"
             ],
             [
@@ -90,7 +90,7 @@
                 "Sengo2::kVisionFace"
             ],
             [
-                "20Classes",
+                "20Class",
                 "Sengo2::kVision20Classes"
             ],
             [
@@ -492,82 +492,6 @@
             [
                 "Speed 80",
                 "Sengo2::kCardSpeed80"
-            ],
-            [
-                "√",
-                "Sengo2::kCardCheck"
-            ],
-            [
-                "X",
-                "Sengo2::kCardCross"
-            ],
-            [
-                "◯",
-                "Sengo2::kCardCircle"
-            ],
-            [
-                "☐",
-                "Sengo2::kCardSquare"
-            ],
-            [
-                "△",
-                "Sengo2::kCardTriangle"
-            ],
-            [
-                "+",
-                "Sengo2::kCardPlus"
-            ],
-            [
-                "-",
-                "Sengo2::kCardMinus"
-            ],
-            [
-                "÷",
-                "Sengo2::kCardDivide"
-            ],
-            [
-                "=",
-                "Sengo2::kCardEqual"
-            ],
-            [
-                "0",
-                "Sengo2::kCardZero"
-            ],
-            [
-                "1",
-                "Sengo2::kCardOne"
-            ],
-            [
-                "2",
-                "Sengo2::kCardTwo"
-            ],
-            [
-                "3",
-                "Sengo2::kCardThree"
-            ],
-            [
-                "4",
-                "Sengo2::kCardFour"
-            ],
-            [
-                "5",
-                "Sengo2::kCardFive"
-            ],
-            [
-                "6",
-                "Sengo2::kCardSix"
-            ],
-            [
-                "7",
-                "Sengo2::kCardSeven"
-            ],
-            [
-                "8",
-                "Sengo2::kCardEight"
-            ],
-            [
-                "9",
-                "Sengo2::kCardNine"
             ]
         ]
     }

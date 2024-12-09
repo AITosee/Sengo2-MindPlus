@@ -54,7 +54,7 @@
                 "sengo2_vision_e.kVisionFace"
             ],
             [
-                "20Classes",
+                "20Class",
                 "sengo2_vision_e.kVision20Classes"
             ],
             [
@@ -90,7 +90,7 @@
                 "sengo2_vision_e.kVisionFace"
             ],
             [
-                "20Classes",
+                "20Class",
                 "sengo2_vision_e.kVision20Classes"
             ],
             [
@@ -488,82 +488,6 @@
             [
                 "Speed 80",
                 "sengo2_card_label_e.kCardSpeed80"
-            ],
-            [
-                "√",
-                "sengo2_card_label_e.kCardCheck"
-            ],
-            [
-                "X",
-                "sengo2_card_label_e.kCardCross"
-            ],
-            [
-                "◯",
-                "sengo2_card_label_e.kCardCircle"
-            ],
-            [
-                "☐",
-                "sengo2_card_label_e.kCardSquare"
-            ],
-            [
-                "△",
-                "sengo2_card_label_e.kCardTriangle"
-            ],
-            [
-                "+",
-                "sengo2_card_label_e.kCardPlus"
-            ],
-            [
-                "-",
-                "sengo2_card_label_e.kCardMinus"
-            ],
-            [
-                "÷",
-                "sengo2_card_label_e.kCardDivide"
-            ],
-            [
-                "=",
-                "sengo2_card_label_e.kCardEqual"
-            ],
-            [
-                "0",
-                "sengo2_card_label_e.kCardZero"
-            ],
-            [
-                "1",
-                "sengo2_card_label_e.kCardOne"
-            ],
-            [
-                "2",
-                "sengo2_card_label_e.kCardTwo"
-            ],
-            [
-                "3",
-                "sengo2_card_label_e.kCardThree"
-            ],
-            [
-                "4",
-                "sengo2_card_label_e.kCardFour"
-            ],
-            [
-                "5",
-                "sengo2_card_label_e.kCardFive"
-            ],
-            [
-                "6",
-                "sengo2_card_label_e.kCardSix"
-            ],
-            [
-                "7",
-                "sengo2_card_label_e.kCardSeven"
-            ],
-            [
-                "8",
-                "sengo2_card_label_e.kCardEight"
-            ],
-            [
-                "9",
-                "sengo2_card_label_e.kCardNine"
             ]
         ]
     }
