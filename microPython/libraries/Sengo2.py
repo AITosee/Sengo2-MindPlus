@@ -1,4 +1,4 @@
-__version__ = "Sengo2 v1.0.0"
+__version__ = "Sengo2 v1.0.3"
 __license__ = "http://unlicense.org"
 
 import ustruct  # pylint: disable=import-error
@@ -286,10 +286,6 @@ class VisionState:
 
 
 class SentryI2CMethod:
-    """
-
-    """
-
     def __init__(self, address, communication_port, logger=None):
         self.__mu_address = address
         self.__communication_port = communication_port
@@ -427,10 +423,6 @@ class SentryI2CMethod:
 
 
 class SentryUartMethod:
-    """
-
-    """
-
     def __init__(self, address, communication_port, logger=None):
         self.__mu_address = address
         self.__communication_port = communication_port
@@ -452,18 +444,21 @@ class SentryUartMethod:
             return SENTRY_PROTOC_OK
         else:
             return SENTRY_PROTOC_CHECK_ERROR
-
-    def __protocol_read(self):
+    def __pkg_transmit(self, data):
+        if self.__communication_port.any():
+            # Clear cache before sending
+            self.__communication_port.read()
+        self.__communication_port.write(data)
 
         count_ms = 0
         # The shortest receiving time of serial protocol is 6 bytes
         while self.__communication_port.any() < 6:
             count_ms += 1
             # The maximum waiting time for receiving data is 1s
-            if count_ms < 1000:
+            if count_ms < 400:
                 sleep_ms(1)
             else:
-                self.Logger(LOG_ERROR, "Waiting for reception timeOut!!!")
+                self.Logger(LOG_ERROR, "Waiting for reception timeOut!!!"+str(self.__communication_port.read()))
                 return (SENTRY_PROTOC_TIMEOUT, [])
 
         self.Logger(LOG_DEBUG, "Waiting for reception takes %dms", count_ms)
@@ -492,6 +487,7 @@ class SentryUartMethod:
             return (SENTRY_PROTOC_CHECK_ERROR, [])
 
         return (SENTRY_PROTOC_OK, tuple(data_list[3:]))
+          
 
     def Set(self, reg_address, value):
 
@@ -505,20 +501,15 @@ class SentryUartMethod:
         data_list.append(cheak_num & 0xff)
         data_list.append(SENTRY_PROTOC_END)
 
-        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+        write_data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
 
         if self.__logger:
             self.Logger(LOG_DEBUG, "Set req-> %s",
-                        ' '.join(['%02x' % b for b in data]))
-
-        if self.__communication_port.any():
-            # Clear cache before sending
-            self.__communication_port.read()
-        self.__communication_port.write(data)
+                        ' '.join(['%02x' % b for b in write_data]))
 
         try_time = 0
         while True:
-            err, data = self.__protocol_read()
+            err, data = self.__pkg_transmit(write_data)
             if err == SENTRY_PROTOC_OK:
                 if data[0] == SENTRY_PROTOC_OK or \
                         data[1] == SENTRY_PROTOC_COMMADN_GET or \
@@ -546,20 +537,15 @@ class SentryUartMethod:
         data_list.append(cheak_num & 0xff)
         data_list.append(SENTRY_PROTOC_END)
 
-        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+        write_data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
 
         if self.__logger:
             self.Logger(LOG_DEBUG, "Get req-> %s",
-                        ' '.join(['%02x' % b for b in data]))
-
-        if self.__communication_port.any():
-            # Clear cache before sending
-            self.__communication_port.read()
-        self.__communication_port.write(data)
+                        ' '.join(['%02x' % b for b in write_data]))
 
         try_time = 0
         while True:
-            err, data = self.__protocol_read()
+            err, data = self.__pkg_transmit(write_data)
             if err == SENTRY_PROTOC_OK:
                 if data[0] == SENTRY_PROTOC_OK or \
                         data[1] == SENTRY_PROTOC_COMMADN_GET:
@@ -586,22 +572,16 @@ class SentryUartMethod:
         data_list.append(cheak_num & 0xff)
         data_list.append(SENTRY_PROTOC_END)
 
-        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+        write_data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
 
         if self.__logger:
             self.Logger(LOG_DEBUG, "Read req-> %s",
-                        ' '.join(['%02x' % b for b in data]))
-
-        if self.__communication_port.any():
-            # Clear cache before sending
-            self.__communication_port.read()
-        self.__communication_port.write(data)
+                        ' '.join(['%02x' % b for b in write_data]))
 
         try_time = 0
         vision_state.detect = 0
-
         while True:
-            err, data = self.__protocol_read()
+            err, data = self.__pkg_transmit(write_data)
             #print("read",hex(err), hex(data[0]))
             if err == SENTRY_PROTOC_OK:
                 if data[0] == SENTRY_PROTOC_OK or data[0] == SENTRY_PROTOC_RESULT_NOT_END:
@@ -664,21 +644,15 @@ class SentryUartMethod:
         data_list.append(cheak_num & 0xff)
         data_list.append(SENTRY_PROTOC_END)
 
-        data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
+        write_data = ustruct.pack(">"+"b"*len(data_list), *tuple(data_list))
 
         if self.__logger:
             self.Logger(LOG_DEBUG, "Set req-> %s",
-                        ' '.join(['%02x' % b for b in data]))
-
-        if self.__communication_port.any():
-            # Clear cache before sending
-            self.__communication_port.read()
-        self.__communication_port.write(data)
+                        ' '.join(['%02x' % b for b in write_data]))
 
         try_time = 0
-
         while True:
-            err, data = self.__protocol_read()
+            err, data = self.__pkg_transmit(write_data)
 
             if err == SENTRY_PROTOC_OK:
                 if data[0] == SENTRY_PROTOC_OK:
