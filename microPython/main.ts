@@ -158,7 +158,7 @@ namespace Sengo2 {
     export function GetLineValue(parameter: any) {
 
         let num = parameter.NUM.code;
-        let obj = parameter.OBJ_INFO_LINE.code;
+        let obj = parameter.OBJ_INFO.code;
         Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionLine,${obj},${num})`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
@@ -168,7 +168,7 @@ namespace Sengo2 {
     export function GetQrCodeValue(parameter: any) {
 
         let num = parameter.NUM.code;
-        let obj = parameter.OBJ_INFO_LINE.code;
+        let obj = parameter.OBJ_INFO.code;
         Generator.addCode([`sengo2.GetValue(sengo2_vision_e.kVisionQrCode,${obj},${num})`, Generator.ORDER_UNARY_POSTFIX]);
     }
 
