@@ -580,8 +580,9 @@ class SentryUartMethod:
 
         try_time = 0
         vision_state.detect = 0
+        v_start_id = -1
         while True:
-            err, data = self.__pkg_transmit(write_data)
+            err, data = self.__protocol_read()
             #print("read",hex(err), hex(data[0]))
             if err == SENTRY_PROTOC_OK:
                 if data[0] == SENTRY_PROTOC_OK or data[0] == SENTRY_PROTOC_RESULT_NOT_END:
@@ -589,6 +590,8 @@ class SentryUartMethod:
                         vision_state.frame = data[2]
                         start_id = data[4]
                         stop_id = data[5]
+                        if v_start_id == -1:
+                            v_start_id = start_id
 
                         if SENTRY_MAX_RESULT < stop_id:
                             return (SENTRY_UNSUPPORT_PARAM, vision_state)
@@ -599,9 +602,9 @@ class SentryUartMethod:
                         if sengo2_vision_e.kVisionQrCode == vision_type:
                             vision_state.detect = 1
                         else:
-                            vision_state.detect = stop_id-start_id+1
+                            vision_state.detect = stop_id-v_start_id+1
 
-                        for i in range(vision_state.detect):
+                        for i in range(stop_id-start_id+1):
                             v_id = i+start_id-1
                             vision_state.result[v_id].data1 = data[10 *
                                                                    i + 6] << 8 | data[10 * i + 7]
